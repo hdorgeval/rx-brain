@@ -1,0 +1,12 @@
+# Dependency directories
+node_modules/
+
+# compiled files
+src/**/*.js
+src/**/*.map
+
+# npm package files
+*.tgz
+build/
+package/
+coverage/

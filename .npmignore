@@ -1,0 +1,4 @@
+*
+!src/synapse/input-channel/*.ts
+!package.json
+!*.md

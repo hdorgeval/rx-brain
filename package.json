@@ -1,0 +1,55 @@
+{
+  "name": "rx-brain",
+  "version": "0.0.0-semantically-released",
+  "description": "An experiment to create an artificial brain that develops and persists itself as source code",
+  "main": "index.js",
+  "scripts": {
+    "precommit": "npm run lint && npm test",
+    "commit": "git-cz",
+    "pretest": "tsc --listEmittedFiles",
+    "test": "jest --coverage --runInBand --verbose --config=jestconfig.test.json",
+    "preupdate:all": "rimraf ./node_modules",
+    "update:all": "npm run update:cli && npm run update:packages && npm run update:types",
+    "update:packages": "npm install --save typescript@latest rxjs@latest my-ts@latest && npm install --save-dev jest@latest tslint@latest semantic-release@latest commitizen@latest cz-conventional-changelog@latest",
+    "update:types": "npm install --save-dev @types/jest @types/node",
+    "update:cli": "npm install -g typescript@latest jest@latest tslint@latest rimraf@latest semantic-release-cli@latest commitizen@latest cz-conventional-changelog@latest codecov@latest",
+    "update:check": "npm outdated",
+    "update:npm": "npm -v && npm install -g npm@latest && npm -v",
+    "lint": "tslint 'src/**/*.ts'",
+    "package": "rimraf ./package && rm -f my*.tgz && npm pack",
+    "semantic-release": "semantic-release pre && npm publish --tag beta && semantic-release post"
+  },
+  "devDependencies": {
+    "@types/jest": "19.2.3",
+    "@types/node": "7.0.18",
+    "commitizen": "2.9.6",
+    "cz-conventional-changelog": "2.0.0",
+    "jest": "20.0.4",
+    "semantic-release": "6.3.6",
+    "tslint": "5.3.2"
+  },
+  "dependencies": {
+    "my-ts": "1.0.7",
+    "rxjs": "5.4.0",
+    "typescript": "2.3.3"
+  },
+  "engines": {
+    "node": ">=7.0.8",
+    "npm": ">=4.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hdorgeval/rx-brain.git"
+  },
+  "author": "Henri d'Orgeval",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hdorgeval/rx-brain/issues"
+  },
+  "homepage": "https://github.com/hdorgeval/rx-brain#readme",
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}

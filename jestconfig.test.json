@@ -1,0 +1,28 @@
+{
+    "roots": [
+      "./src/"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "<rootDir>/preprocessor.js"
+    },
+    "testMatch": ["**/*.spec.(ts|tsx)"],
+    "moduleFileExtensions": ["ts","tsx","js","jsx"],
+    "moduleDirectories": ["node_modules", "src"],
+    "mapCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.interface.js",
+      "!src/**/*.interface.ts",
+      "!src/**/*.spec.ts",
+      "!src/**/*.spec.js",
+      "!**/node_modules/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 25,
+        "functions": 25,
+        "lines": 25,
+        "statements": 25
+      }
+    }
+}
