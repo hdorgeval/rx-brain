@@ -1,9 +1,9 @@
 import {my} from "my-ts";
 import * as rx from "rxjs";
-import { IInputChannel,  IObserverWithSubscription} from "./input-channel.interface";
-import {InputChannel} from "./input-channel.template";
+import { IInputChannel,  IObserverWithSubscription} from "./hillock.interface";
+import {Hillock} from "./hillock.template";
 
-let inputChannel: IInputChannel<any>;
+let hillock: IInputChannel<any>;
 let sourceStream: rx.Subject<any>;
 let otherSourceStream: rx.Subject<any>;
 let observer: rx.Observer<any>;
@@ -23,7 +23,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-    inputChannel = new InputChannel<any>();
+    hillock = new Hillock<any>();
     sourceStream = new rx.Subject();
     otherSourceStream = new rx.Subject();
     nextMethodOfObserver = jest.spyOn(observer, "next");
@@ -35,11 +35,11 @@ afterEach(() => {
     otherSourceStream.complete();
 });
 
-test("Synapse Input channel is initially disconnected", () => {
+test("Synapse hillock is initially disconnected", () => {
     // Given
 
     // When
 
     // Then
-    expect(inputChannel.isDisconnected).toBeTruthy();
+    expect(hillock.isDisconnected).toBeTruthy();
 });

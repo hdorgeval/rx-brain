@@ -1,8 +1,8 @@
 import {my} from "my-ts";
 import * as rx from "rxjs";
-import {IInputChannel, IObserverWithSubscription} from "./input-channel.interface";
+import {IInputChannel, IObserverWithSubscription} from "./hillock.interface";
 
-export class InputChannel<T> implements IInputChannel<T> {
+export class Hillock<T> implements IInputChannel<T> {
     private source: rx.Observable<T>;
     private observer: rx.Observer<T>;
     private subscription: rx.Subscription;
