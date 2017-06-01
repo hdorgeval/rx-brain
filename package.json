@@ -17,7 +17,7 @@
     "update:npm": "npm -v && npm install -g npm@latest && npm -v",
     "lint": "tslint 'src/**/*.ts'",
     "package": "rimraf ./package && rm -f my*.tgz && npm pack",
-    "semantic-release": "semantic-release pre && npm publish --tag beta && semantic-release post"
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "devDependencies": {
     "@types/jest": "19.2.3",
