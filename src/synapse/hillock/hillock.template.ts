@@ -4,13 +4,50 @@ import {IInputChannel, IObserverWithSubscription} from "./hillock.interface";
 
 export class Hillock<T> implements IInputChannel<T> {
     private source: rx.Observable<T>;
-    private observer: rx.Observer<T>;
-    private subscription: rx.Subscription;
+    private observerWithSubscription: IObserverWithSubscription<T>;
+    private get hasObserver() {
+        const observerWithSubscription = this.observerWithSubscription;
+        if (my(observerWithSubscription).isNullOrUndefinedOrEmpty) {
+            return false;
+        }
+
+        const observer = this.observerWithSubscription.observer;
+        if (my(observer).isNullOrUndefined) {
+            return false;
+        }
+
+        return true;
+    }
+    private get hasNoObserver() {
+        return this.hasObserver === false;
+    }
+    private get hasObserverWithNoSubscription() {
+        if (this.hasObserver === false) {
+            return false;
+        }
+        const subscription = this.observerWithSubscription.subscription;
+        if (my(subscription).isNullOrUndefined) {
+            return true;
+        }
+        return false;
+    }
+
     public connectTo(source: rx.Observable<T>): IInputChannel<T> {
-        throw new Error("Method not implemented.");
+        this.source = source;
+        if (this.hasObserverWithNoSubscription) {
+            this.observerWithSubscription.subscription = this.source.subscribe(this.observerWithSubscription.observer);
+        }
+
+        return this;
     }
     public observeWith(observer: IObserverWithSubscription<T>): IInputChannel<T> {
-        throw new Error("Method not implemented.");
+        this.observerWithSubscription = {...observer};
+        if (this.hasObserverWithNoSubscription) {
+            observer.subscription = this.observerWithSubscription.subscription
+                                  = this.source.subscribe(this.observerWithSubscription.observer);
+            observer.subscription = this.observerWithSubscription.subscription;
+        }
+        return this;
     }
     public get isDisconnected(): boolean {
         const source = this.source;
@@ -18,8 +55,11 @@ export class Hillock<T> implements IInputChannel<T> {
             return true;
         }
 
-        const subscription = this.subscription;
-        if (my(subscription).isNullOrUndefined) {
+        if (this.hasNoObserver) {
+            return true;
+        }
+
+        if (this.hasObserverWithNoSubscription) {
             return true;
         }
 

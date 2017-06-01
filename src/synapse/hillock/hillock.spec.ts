@@ -6,7 +6,7 @@ import {Hillock} from "./hillock.template";
 let hillock: IInputChannel<any>;
 let sourceStream: rx.Subject<any>;
 let otherSourceStream: rx.Subject<any>;
-let observer: rx.Observer<any>;
+let observerWithSubscription: IObserverWithSubscription<any> ;
 let nextMethodOfObserver: jest.SpyInstance<any>;
 
 // tslint:disable:no-console
@@ -14,11 +14,14 @@ let nextMethodOfObserver: jest.SpyInstance<any>;
 // tslint:disable:max-line-length
 
 beforeAll(() => {
-    observer = {
-        next: (x) => {
-            console.log("Observer got a next value: " + x); },
-        error: (err) => console.error("Observer got an error: " + err),
-        complete: () => console.log("Observer got a complete notification"),
+    observerWithSubscription = {
+        observer : {
+            next: (x) => {
+                console.log("Observer got a next value: " + x); },
+            error: (err) => console.error("Observer got an error: " + err),
+            complete: () => console.log("Observer got a complete notification"),
+        },
+        subscription: null,
     };
 });
 
@@ -26,7 +29,7 @@ beforeEach(() => {
     hillock = new Hillock<any>();
     sourceStream = new rx.Subject();
     otherSourceStream = new rx.Subject();
-    nextMethodOfObserver = jest.spyOn(observer, "next");
+    nextMethodOfObserver = jest.spyOn(observerWithSubscription.observer, "next");
 });
 
 afterEach(() => {
@@ -35,11 +38,38 @@ afterEach(() => {
     otherSourceStream.complete();
 });
 
-test("Synapse hillock is initially disconnected", () => {
+test("hillock is initially disconnected", () => {
     // Given
 
     // When
 
     // Then
     expect(hillock.isDisconnected).toBeTruthy();
+});
+
+test("hillock should not connect to the data source when there is no observer", () => {
+    // Given
+    sourceStream.next(0);
+
+    // When
+    hillock.connectTo(sourceStream);
+    sourceStream.next(1);
+
+    // Then
+    expect(hillock.isDisconnected).toBeTruthy();
+});
+
+test("when hillock is connected to a data source, it should take data from that source only when there is an observer", () => {
+    // Given
+    hillock.connectTo(sourceStream);
+    sourceStream.next(0);
+
+    // When
+    hillock.observeWith(observerWithSubscription);
+    sourceStream.next(1);
+
+    // Then
+    expect(hillock.isDisconnected).toBeFalsy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfObserver).toBeCalledWith(1);
 });
