@@ -94,7 +94,11 @@ export class Hillock<T> implements IInputChannel<T> {
         }
         this.tryDisconnectCurrentObserver();
         this.observerWithSubscription = {...observer};
+        const source = this.source;
+        if (my(source).isNullOrUndefined) {
+            return;
+        }
         observer.subscription = this.observerWithSubscription.subscription
-                              = this.source.subscribe(this.observerWithSubscription.observer);
+                              = source.subscribe(this.observerWithSubscription.observer);
     }
 }

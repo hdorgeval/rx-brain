@@ -125,3 +125,20 @@ test(`Given hillock is connected to a data source
     expect(nextMethodOfObserver).toBeCalledWith(0);
     expect(nextMethodOfObserver).toBeCalledWith(3);
 });
+
+test(`Given hillock is not connected to a data source
+      When an observer connects to this hillock
+      Then the hillock should stay disconnected
+      And the observer should not receive any data`
+    , () => {
+    // Given
+    sourceStream.next(0);
+
+    // When
+    hillock.observeWith(observerWithSubscription);
+    sourceStream.next(1);
+
+    // Then
+    expect(hillock.isDisconnected).toBeTruthy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(0);
+});
