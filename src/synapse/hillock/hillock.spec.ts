@@ -47,7 +47,11 @@ test("hillock is initially disconnected", () => {
     expect(hillock.isDisconnected).toBeTruthy();
 });
 
-test("hillock should not connect to the data source when there is no observer", () => {
+test(`Given a data source that emits data
+      And hillock has no observer
+      When hillock connects to that data source
+      Then hillock should stay disconnected`
+    , () => {
     // Given
     sourceStream.next(0);
 
@@ -59,7 +63,12 @@ test("hillock should not connect to the data source when there is no observer", 
     expect(hillock.isDisconnected).toBeTruthy();
 });
 
-test("when hillock is connected to a data source, it should take data from that source only when there is an observer", () => {
+test(`Given hillock is connected to a data source
+      And there is no observer
+      And the data source is emitting data
+      When an observer connects to the hillock
+      Then the observer should receive the data that was sent only after the subscription`
+    , () => {
     // Given
     hillock.connectTo(sourceStream);
     sourceStream.next(0);
@@ -75,7 +84,7 @@ test("when hillock is connected to a data source, it should take data from that 
 });
 
 test(`Given hillock is connected to a data source
-      and hillock has an observer
+      And hillock has an observer
       When hillock is connected to another data source
       Then the observer should not receive data from primary data source`
     , () => {
@@ -92,4 +101,27 @@ test(`Given hillock is connected to a data source
     expect(hillock.isDisconnected).toBeFalsy();
     expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
     expect(nextMethodOfObserver).toBeCalledWith(0);
+});
+
+test(`Given hillock is connected to a data source
+      And hillock has an observer
+      When hillock is connected to another data source
+      Then the observer should receive data from this other data source`
+    , () => {
+    // Given
+    hillock.connectTo(sourceStream)
+           .observeWith(observerWithSubscription);
+    sourceStream.next(0);
+    otherSourceStream.next(1);
+
+    // When
+    hillock.connectTo(otherSourceStream);
+    sourceStream.next(2);
+    otherSourceStream.next(3);
+
+    // Then
+    expect(hillock.isDisconnected).toBeFalsy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(3);
 });
