@@ -1,4 +1,4 @@
 *
-!src/synapse/input-channel/*.ts
+!src/synapse/hillock/*.ts
 !package.json
 !*.md
