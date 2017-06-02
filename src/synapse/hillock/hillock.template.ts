@@ -47,7 +47,6 @@ export class Hillock<T> implements IInputChannel<T> {
         }
         return false;
     }
-
     public connectTo(source: rx.Observable<T>): IInputChannel<T> {
         this.source = source;
         this.tryConnectCurrentObserverWithCurrentSource();

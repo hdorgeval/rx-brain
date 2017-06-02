@@ -74,7 +74,6 @@ test("when hillock is connected to a data source, it should take data from that 
     expect(nextMethodOfObserver).toBeCalledWith(1);
 });
 
-
 test(`Given hillock is connected to a data source
       and hillock has an observer
       When hillock is connected to another data source
