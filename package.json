@@ -1,6 +1,6 @@
 {
   "name": "rx-brain",
-  "version": "0.0.0-semantically-released",
+  "version": "1.1.2-semantically-released",
   "description": "An experiment to create an artificial brain that develops and persists itself as source code",
   "main": "index.js",
   "scripts": {
