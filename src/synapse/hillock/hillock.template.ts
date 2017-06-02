@@ -29,24 +29,32 @@ export class Hillock<T> implements IInputChannel<T> {
         if (my(subscription).isNullOrUndefined) {
             return true;
         }
+        if (subscription.closed === true) {
+            return true;
+        }
+        return false;
+    }
+    private get hasObserverWithActiveSubscription() {
+        if (this.hasObserver === false) {
+            return false;
+        }
+        const subscription = this.observerWithSubscription.subscription;
+        if (my(subscription).isNullOrUndefined) {
+            return false;
+        }
+        if (subscription.closed === false) {
+            return true;
+        }
         return false;
     }
 
     public connectTo(source: rx.Observable<T>): IInputChannel<T> {
         this.source = source;
-        if (this.hasObserverWithNoSubscription) {
-            this.observerWithSubscription.subscription = this.source.subscribe(this.observerWithSubscription.observer);
-        }
-
+        this.tryConnectCurrentObserverWithCurrentSource();
         return this;
     }
     public observeWith(observer: IObserverWithSubscription<T>): IInputChannel<T> {
-        this.observerWithSubscription = {...observer};
-        if (this.hasObserverWithNoSubscription) {
-            observer.subscription = this.observerWithSubscription.subscription
-                                  = this.source.subscribe(this.observerWithSubscription.observer);
-            observer.subscription = this.observerWithSubscription.subscription;
-        }
+        this.tryConnectCurrentSourceWith(observer);
         return this;
     }
     public get isDisconnected(): boolean {
@@ -64,5 +72,30 @@ export class Hillock<T> implements IInputChannel<T> {
         }
 
         return false;
+    }
+    private tryConnectCurrentObserverWithCurrentSource(): void {
+        if (this.hasObserverWithNoSubscription) {
+            this.observerWithSubscription.subscription = this.source.subscribe(this.observerWithSubscription.observer);
+            return;
+        }
+        if (this.hasObserverWithActiveSubscription) {
+            this.observerWithSubscription.subscription.unsubscribe();
+            this.observerWithSubscription.subscription = this.source.subscribe(this.observerWithSubscription.observer);
+            return;
+        }
+    }
+    private tryDisconnectCurrentObserver() {
+        if (this.hasObserverWithActiveSubscription) {
+            this.observerWithSubscription.subscription.unsubscribe();
+        }
+    }
+    private tryConnectCurrentSourceWith(observer: IObserverWithSubscription<T>): void {
+        if (my(observer).isNullOrUndefinedOrEmpty) {
+            return;
+        }
+        this.tryDisconnectCurrentObserver();
+        this.observerWithSubscription = {...observer};
+        observer.subscription = this.observerWithSubscription.subscription
+                              = this.source.subscribe(this.observerWithSubscription.observer);
     }
 }
