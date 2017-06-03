@@ -197,3 +197,50 @@ test(`Given hillock is connected to a data source
     expect(nextMethodOfOtherObserver).toHaveBeenCalledTimes(1);
     expect(nextMethodOfOtherObserver).toBeCalledWith(1);
 });
+
+test(`Given hillock is connected to a data source
+      And hillock has an observer
+      When same observer reconnects to the hillock
+      Then the observer should continue to receive data from the data source`
+    , () => {
+    // Given
+    hillock.connectTo(sourceStream)
+           .observeWith(observerWithSubscription);
+    sourceStream.next(0);
+
+    // When
+    hillock.observeWith(observerWithSubscription);
+    sourceStream.next(1);
+
+    // Then
+    expect(hillock.isDisconnected).toBeFalsy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(1);
+});
+
+test(`Given hillock is connected to a data source
+      And hillock has an observer
+      When this observer disconnects
+      And reconnects to the hillock after a while
+      Then the observer should not receive the data emitted in between
+      But the observer should continue to receive data emitted after its second subscription`
+    , () => {
+    // Given
+    hillock.connectTo(sourceStream)
+           .observeWith(observerWithSubscription);
+    sourceStream.next(0);
+
+    // When
+    observerWithSubscription.subscription.unsubscribe();
+    observerWithSubscription.subscription = null;
+    sourceStream.next(1);
+    hillock.observeWith(observerWithSubscription);
+    sourceStream.next(2);
+
+    // Then
+    expect(hillock.isDisconnected).toBeFalsy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(2);
+});
