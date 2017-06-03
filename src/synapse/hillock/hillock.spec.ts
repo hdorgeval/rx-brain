@@ -7,7 +7,9 @@ let hillock: IInputChannel<any>;
 let sourceStream: rx.Subject<any>;
 let otherSourceStream: rx.Subject<any>;
 let observerWithSubscription: IObserverWithSubscription<any> ;
+let otherObserverWithSubscription: IObserverWithSubscription<any> ;
 let nextMethodOfObserver: jest.SpyInstance<any>;
+let nextMethodOfOtherObserver: jest.SpyInstance<any>;
 
 // tslint:disable:no-console
 // tslint:disable:object-literal-sort-keys
@@ -23,6 +25,15 @@ beforeAll(() => {
         },
         subscription: null,
     };
+    otherObserverWithSubscription = {
+        observer : {
+            next: (x) => {
+                console.log("Other Observer got a next value: " + x); },
+            error: (err) => console.error("Other Observer got an error: " + err),
+            complete: () => console.log("Other Observer got a complete notification"),
+        },
+        subscription: null,
+    };
 });
 
 beforeEach(() => {
@@ -30,10 +41,12 @@ beforeEach(() => {
     sourceStream = new rx.Subject();
     otherSourceStream = new rx.Subject();
     nextMethodOfObserver = jest.spyOn(observerWithSubscription.observer, "next");
+    nextMethodOfOtherObserver = jest.spyOn(otherObserverWithSubscription.observer, "next");
 });
 
 afterEach(() => {
     nextMethodOfObserver.mockRestore();
+    nextMethodOfOtherObserver.mockRestore();
     sourceStream.complete();
     otherSourceStream.complete();
 });
@@ -141,4 +154,46 @@ test(`Given hillock is not connected to a data source
     // Then
     expect(hillock.isDisconnected).toBeTruthy();
     expect(nextMethodOfObserver).toHaveBeenCalledTimes(0);
+});
+
+test(`Given hillock is connected to a data source
+      And there is no observer
+      And the data source is emitting data
+      When a null observer connects to the hillock
+      Then the hillock should stay disconnected`
+    , () => {
+    // Given
+    hillock.connectTo(sourceStream);
+    sourceStream.next(0);
+
+    // When
+    hillock.observeWith(null);
+    sourceStream.next(1);
+
+    // Then
+    expect(hillock.isDisconnected).toBeTruthy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(0);
+});
+
+test(`Given hillock is connected to a data source
+      And hillock has an observer
+      When another observer connects to the hillock
+      Then the first observer should not receive any more data from the data source
+      And the new observer should receive the data that was sent only after its subscription`
+    , () => {
+    // Given
+    hillock.connectTo(sourceStream)
+           .observeWith(observerWithSubscription);
+    sourceStream.next(0);
+
+    // When
+    hillock.observeWith(otherObserverWithSubscription);
+    sourceStream.next(1);
+
+    // Then
+    expect(hillock.isDisconnected).toBeFalsy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfOtherObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfOtherObserver).toBeCalledWith(1);
 });
