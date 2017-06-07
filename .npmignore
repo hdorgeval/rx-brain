@@ -1,4 +1,5 @@
 *
+!src/synapse/common/*.ts
 !src/synapse/hillock/*.ts
 !package.json
 !*.md
