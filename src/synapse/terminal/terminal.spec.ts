@@ -77,6 +77,25 @@ test(`Given a terminal has no observer
     expect(nextMethodOfObserver).toHaveBeenCalledTimes(0);
 });
 
+test(`Given a terminal has no observer
+      And a data is transmitted to this terminal
+      When an observer connects
+      and a new data is transmitted to this terminal
+      Then the observer should receive this new data only`
+    , () => {
+    // Given
+    terminal.transmit(0);
+
+    // When
+    terminal.observeWith(observerWithSubscription);
+    terminal.transmit(1);
+
+    // Then
+    expect(terminal.hasConnections).toBeTruthy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfObserver).toBeCalledWith(1);
+});
+
 test(`Given a terminal has one observer
       When a data is transmitted to this terminal
       Then the observer should receive this data`
@@ -109,6 +128,27 @@ test(`Given a terminal has one observer
     expect(terminal.hasConnections).toBeTruthy();
     expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
     expect(nextMethodOfObserver).toBeCalledWith(0);
+});
+
+test(`Given a terminal has one observer
+      And a data is transmitted to this terminal
+      When the same observer connects again
+      And a new data is transmitted to this terminal
+      Then the observer should receive this new data only once`
+    , () => {
+    // Given
+    terminal.observeWith(observerWithSubscription);
+    terminal.transmit(0);
+
+    // When
+    terminal.observeWith(observerWithSubscription);
+    terminal.transmit(1);
+
+    // Then
+    expect(terminal.hasConnections).toBeTruthy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(1);
 });
 
 test(`Given a terminal has one observer
@@ -152,4 +192,71 @@ test(`Given a terminal has one observer
     expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
     expect(nextMethodOfObserver).toBeCalledWith(0);
     expect(nextMethodOfObserver).toBeCalledWith(1);
+});
+
+test(`Given a terminal has one observer
+      And a data is transmitted to this terminal
+      When this observer disconnects
+      And a data is transmitted to this terminal
+      And the same observer connects again
+      And a data is transmitted to this terminal
+      Then the observer should receive first and last data`
+    , () => {
+    // Given
+    terminal.observeWith(observerWithSubscription);
+    terminal.transmit(0);
+
+    // When
+    observerWithSubscription.subscription.unsubscribe();
+    terminal.transmit(1);
+    terminal.observeWith(observerWithSubscription);
+    terminal.transmit(2);
+
+    // Then
+    expect(terminal.hasConnections).toBeTruthy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(2);
+});
+
+test(`Given a terminal has two observers
+      When a data is transmitted to this terminal
+      Then both observers should receive this data`
+    , () => {
+    // Given
+    terminal.observeWith(observerWithSubscription);
+    terminal.observeWith(otherObserverWithSubscription);
+
+    // When
+    terminal.transmit(0);
+
+    // Then
+    expect(terminal.hasConnections).toBeTruthy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfOtherObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfOtherObserver).toBeCalledWith(0);
+});
+
+test(`Given a terminal has two observers
+      When a data is transmitted to this terminal
+      And both observers disconnect
+      Then both observers should receive this data
+      And terminal should have no connection`
+    , () => {
+    // Given
+    terminal.observeWith(observerWithSubscription);
+    terminal.observeWith(otherObserverWithSubscription);
+
+    // When
+    terminal.transmit(0);
+    observerWithSubscription.subscription.unsubscribe();
+    otherObserverWithSubscription.subscription.unsubscribe();
+
+    // Then
+    expect(terminal.hasConnections).toBeFalsy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfOtherObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfOtherObserver).toBeCalledWith(0);
 });
