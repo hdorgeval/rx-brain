@@ -4,6 +4,7 @@ import {IObserverWithSubscription} from "../common/synapse.interface";
 import {IOutputChannel} from "./terminal.interface";
 export class Terminal<T> implements IOutputChannel<T> {
     private outputChannel: rx.Subject<T>;
+    private observers: Array<IObserverWithSubscription<T>>;
     public get hasConnections(): boolean {
         const channel = this.outputChannel;
         if (my(channel).isNullOrUndefinedOrEmpty) {
@@ -29,16 +30,52 @@ export class Terminal<T> implements IOutputChannel<T> {
         if (my(observerWithSubscription).isNullOrUndefinedOrEmpty) {
             return;
         }
+        const newObserver = observerWithSubscription.observer;
+        if (my(newObserver).isNullOrUndefined) {
+            return;
+        }
         this.ensureOutputChannelIsInitialized();
-        observerWithSubscription.subscription =
+        const observers = this.observers;
+        const foundObserver = my(observers).firstOrDefault(
+            (element: IObserverWithSubscription<T>, index: number) => {
+                if (my(element).isNullOrUndefinedOrEmpty) {
+                    return false;
+                }
+                if (element.id === observerWithSubscription.id) {
+                    return true;
+                }
+                return false;
+            });
+        if (my(foundObserver).isNullOrUndefined) {
+            observerWithSubscription.subscription =
             this.outputChannel.subscribe(observerWithSubscription.observer);
+            this.observers.push(observerWithSubscription);
+        }
     }
     private ensureOutputChannelIsInitialized(): void {
+        this.ensureAllObserversAreStillConnected();
         const channel = this.outputChannel;
         if (my(channel).isNullOrUndefinedOrEmpty) {
             this.outputChannel = new rx.Subject<T>();
+            this.observers = [];
             return;
         }
+    }
+    private ensureAllObserversAreStillConnected(): void {
+        const observers = this.observers;
+        this.observers = my(observers).where(
+            (observer: IObserverWithSubscription<T>, index: number): boolean => {
+                if (my(observer).isNullOrUndefinedOrEmpty) {
+                    return false;
+                }
+                if (my(observer.subscription).isNullOrUndefined) {
+                    return false;
+                }
+                if (observer.subscription.closed) {
+                    return false;
+                }
+                return true;
+            });
     }
     private tryTransmit(vesicle: T): void {
         if (my(vesicle).isNullOrUndefinedOrEmpty) {

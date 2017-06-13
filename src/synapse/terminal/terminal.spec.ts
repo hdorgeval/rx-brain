@@ -25,6 +25,7 @@ beforeAll(() => {
             complete: () => console.log("Observer got a complete notification"),
         },
         subscription: null,
+        id: "o1",
     };
     otherObserverWithSubscription = {
         observer : {
@@ -34,6 +35,7 @@ beforeAll(() => {
             complete: () => console.log("Other Observer got a complete notification"),
         },
         subscription: null,
+        id: "o2",
     };
 });
 
@@ -89,4 +91,65 @@ test(`Given a terminal has one observer
     expect(terminal.hasConnections).toBeTruthy();
     expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
     expect(nextMethodOfObserver).toBeCalledWith(0);
+});
+
+test(`Given a terminal has one observer
+      When the same observer connects again
+      and a data is transmitted to this terminal
+      Then the observer should receive this data only once`
+    , () => {
+    // Given
+    terminal.observeWith(observerWithSubscription);
+
+    // When
+    terminal.observeWith(observerWithSubscription);
+    terminal.transmit(0);
+
+    // Then
+    expect(terminal.hasConnections).toBeTruthy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+});
+
+test(`Given a terminal has one observer
+      When this observer disconnects
+      And a data is transmitted to this terminal
+      Then the observer should not receive data anymore`
+    , () => {
+    // Given
+    terminal.observeWith(observerWithSubscription);
+    terminal.transmit(0);
+
+    // When
+    observerWithSubscription.subscription.unsubscribe();
+    terminal.transmit(1);
+    terminal.transmit(2);
+
+    // Then
+    expect(terminal.hasConnections).toBeFalsy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+});
+
+test(`Given a terminal has one observer
+      And a data is transmitted to this terminal
+      When this observer disconnects
+      And the same observer connects again
+      And a data is transmitted to this terminal
+      Then the observer should receive this data`
+    , () => {
+    // Given
+    terminal.observeWith(observerWithSubscription);
+    terminal.transmit(0);
+
+    // When
+    observerWithSubscription.subscription.unsubscribe();
+    terminal.observeWith(observerWithSubscription);
+    terminal.transmit(1);
+
+    // Then
+    expect(terminal.hasConnections).toBeTruthy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(1);
 });

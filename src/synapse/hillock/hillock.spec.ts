@@ -25,6 +25,7 @@ beforeAll(() => {
             complete: () => console.log("Observer got a complete notification"),
         },
         subscription: null,
+        id: "o1",
     };
     otherObserverWithSubscription = {
         observer : {
@@ -34,6 +35,7 @@ beforeAll(() => {
             complete: () => console.log("Other Observer got a complete notification"),
         },
         subscription: null,
+        id: "o2",
     };
 });
 
