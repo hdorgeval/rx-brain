@@ -84,6 +84,15 @@ export class Terminal<T> implements IOutputChannel<T> {
         if (this.hasNoConnection) {
             return;
         }
-        this.outputChannel.next(vesicle);
+
+        const observers = [...this.outputChannel.observers];
+        observers.map( (observer) => {
+            try {
+                observer.next(vesicle);
+            } catch (error) {
+                // the faulty observer is automatically removed from the outputChannel
+                // this faulty observer will never receive more data until it explicitly resubscribes
+            }
+        });
     }
 }

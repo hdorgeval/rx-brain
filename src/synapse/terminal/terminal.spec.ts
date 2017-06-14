@@ -9,8 +9,10 @@ let sourceStream: rx.Subject<any>;
 let otherSourceStream: rx.Subject<any>;
 let observerWithSubscription: IObserverWithSubscription<any> ;
 let otherObserverWithSubscription: IObserverWithSubscription<any> ;
+let badObserverWithSubscription: IObserverWithSubscription<any>;
 let nextMethodOfObserver: jest.SpyInstance<any>;
 let nextMethodOfOtherObserver: jest.SpyInstance<any>;
+let nextMethodOfBadObserver: jest.SpyInstance<any>;
 
 // tslint:disable:no-console
 // tslint:disable:object-literal-sort-keys
@@ -37,6 +39,17 @@ beforeAll(() => {
         subscription: null,
         id: "o2",
     };
+    badObserverWithSubscription = {
+        observer : {
+            next: (x) => {
+                throw new Error("exception raised by Bad Observer");
+                 },
+            error: (err) => console.error("Bad Observer got an error: " + err),
+            complete: () => console.log("Bad Observer got a complete notification"),
+        },
+        subscription: null,
+        id: "bad1",
+    };
 });
 
 beforeEach(() => {
@@ -45,11 +58,13 @@ beforeEach(() => {
     otherSourceStream = new rx.Subject();
     nextMethodOfObserver = jest.spyOn(observerWithSubscription.observer, "next");
     nextMethodOfOtherObserver = jest.spyOn(otherObserverWithSubscription.observer, "next");
+    nextMethodOfBadObserver = jest.spyOn(badObserverWithSubscription.observer, "next");
 });
 
 afterEach(() => {
     nextMethodOfObserver.mockRestore();
     nextMethodOfOtherObserver.mockRestore();
+    nextMethodOfBadObserver.mockRestore();
     sourceStream.complete();
     otherSourceStream.complete();
 });
@@ -259,4 +274,47 @@ test(`Given a terminal has two observers
     expect(nextMethodOfObserver).toBeCalledWith(0);
     expect(nextMethodOfOtherObserver).toHaveBeenCalledTimes(1);
     expect(nextMethodOfOtherObserver).toBeCalledWith(0);
+});
+
+test(`Given a terminal has one observer
+      When a data is transmitted to this terminal
+      And this observer throws an error
+      Then this observer should not receive any more data
+      And this observer should be automatically disconnected`
+    , () => {
+    // Given
+    terminal.observeWith(badObserverWithSubscription);
+
+    // When
+    terminal.transmit(0);
+    terminal.transmit(1);
+
+    // Then
+    expect(terminal.hasConnections).toBeFalsy();
+    expect(nextMethodOfBadObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfBadObserver).toBeCalledWith(0);
+});
+
+test(`Given a terminal has two observers
+      When a data is transmitted to this terminal
+      And the first observer throws an error
+      Then the second observer should receive this data
+      And any other data transmitted afterwards
+      But the first observer should not receive any more data`
+    , () => {
+    // Given
+    terminal.observeWith(badObserverWithSubscription)
+            .observeWith(observerWithSubscription);
+
+    // When
+    terminal.transmit(0);
+    terminal.transmit(1);
+
+    // Then
+    expect(terminal.hasConnections).toBeTruthy();
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(1);
+    expect(nextMethodOfBadObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfBadObserver).toBeCalledWith(0);
 });
