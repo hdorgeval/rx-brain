@@ -1,6 +1,9 @@
 import {my} from "my-ts";
+import { IValidationResult } from "my-ts/build/common/my-common.interface";
 import * as rx from "rxjs";
 import {IObserverWithSubscription} from "../common/synapse.interface";
+import { observerHasActiveSubcription } from "../common/synapse.predicates";
+import { observerWithSubscriptionValidator } from "../common/synapse.validators";
 import {IOutputChannel} from "./terminal.interface";
 export class Terminal<T> implements IOutputChannel<T> {
     private outputChannel: rx.Subject<T>;
@@ -27,13 +30,12 @@ export class Terminal<T> implements IOutputChannel<T> {
         return this;
     }
     private tryConnectToOutputChannelWith(observerWithSubscription: IObserverWithSubscription<T>): void {
-        if (my(observerWithSubscription).isNullOrUndefinedOrEmpty) {
+        const {isValid} = my(observerWithSubscription)
+                            .validateWith(observerWithSubscriptionValidator);
+        if (isValid === false) {
             return;
         }
-        const newObserver = observerWithSubscription.observer;
-        if (my(newObserver).isNullOrUndefined) {
-            return;
-        }
+
         this.ensureOutputChannelIsInitialized();
         const observers = this.observers;
         const foundObserver = my(observers).firstOrDefault(
@@ -63,19 +65,7 @@ export class Terminal<T> implements IOutputChannel<T> {
     }
     private ensureAllObserversAreStillConnected(): void {
         const observers = this.observers;
-        this.observers = my(observers).where(
-            (observer: IObserverWithSubscription<T>, index: number): boolean => {
-                if (my(observer).isNullOrUndefinedOrEmpty) {
-                    return false;
-                }
-                if (my(observer.subscription).isNullOrUndefined) {
-                    return false;
-                }
-                if (observer.subscription.closed) {
-                    return false;
-                }
-                return true;
-            });
+        this.observers = my(observers).where(observerHasActiveSubcription);
     }
     private tryTransmit(vesicle: T): void {
         if (my(vesicle).isNullOrUndefinedOrEmpty) {
@@ -95,4 +85,5 @@ export class Terminal<T> implements IOutputChannel<T> {
             }
         });
     }
+
 }
