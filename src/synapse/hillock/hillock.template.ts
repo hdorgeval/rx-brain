@@ -1,51 +1,20 @@
 import {my} from "my-ts";
 import * as rx from "rxjs";
 import {IObserverWithSubscription} from "../common/synapse.interface";
+import { observerWithActiveSubcription, observerWithNoActiveSubscription } from "../common/synapse.predicates";
+import { observerWithSubscriptionValidator } from "../common/synapse.validators";
 import {IInputChannel} from "./hillock.interface";
 export class Hillock<T> implements IInputChannel<T> {
     private source: rx.Observable<T>;
     private observerWithSubscription: IObserverWithSubscription<T>;
     private get hasObserver() {
         const observerWithSubscription = this.observerWithSubscription;
-        if (my(observerWithSubscription).isNullOrUndefinedOrEmpty) {
-            return false;
-        }
-
-        const observer = this.observerWithSubscription.observer;
-        if (my(observer).isNullOrUndefined) {
-            return false;
-        }
-
-        return true;
+        const {isValid} = my(observerWithSubscription)
+                            .validateWith(observerWithSubscriptionValidator);
+        return isValid;
     }
     private get hasNoObserver() {
         return this.hasObserver === false;
-    }
-    private get hasObserverWithNoSubscription() {
-        if (this.hasObserver === false) {
-            return false;
-        }
-        const subscription = this.observerWithSubscription.subscription;
-        if (my(subscription).isNullOrUndefined) {
-            return true;
-        }
-        if (subscription.closed === true) {
-            return true;
-        }
-        return false;
-    }
-    private get hasObserverWithActiveSubscription() {
-        if (this.hasObserver === false) {
-            return false;
-        }
-        const subscription = this.observerWithSubscription.subscription;
-        if (my(subscription).isNullOrUndefined) {
-            return false;
-        }
-        if (subscription.closed === false) {
-            return true;
-        }
-        return false;
     }
     public connectTo(source: rx.Observable<T>): IInputChannel<T> {
         this.source = source;
@@ -66,25 +35,29 @@ export class Hillock<T> implements IInputChannel<T> {
             return true;
         }
 
-        if (this.hasObserverWithNoSubscription) {
+        const observer = this.observerWithSubscription;
+        if (my(observer).is(observerWithNoActiveSubscription)) {
             return true;
         }
 
         return false;
     }
     private tryConnectCurrentObserverWithCurrentSource(): void {
-        if (this.hasObserverWithNoSubscription) {
+        const observer = this.observerWithSubscription;
+
+        if (my(observer).is(observerWithNoActiveSubscription)) {
             this.observerWithSubscription.subscription = this.source.subscribe(this.observerWithSubscription.observer);
             return;
         }
-        if (this.hasObserverWithActiveSubscription) {
+        if (my(observer).is(observerWithActiveSubcription)) {
             this.observerWithSubscription.subscription.unsubscribe();
             this.observerWithSubscription.subscription = this.source.subscribe(this.observerWithSubscription.observer);
             return;
         }
     }
     private tryDisconnectCurrentObserver() {
-        if (this.hasObserverWithActiveSubscription) {
+        const observer = this.observerWithSubscription;
+        if (my(observer).is(observerWithActiveSubcription)) {
             this.observerWithSubscription.subscription.unsubscribe();
         }
     }
