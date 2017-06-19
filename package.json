@@ -29,7 +29,7 @@
     "tslint": "5.3.2"
   },
   "dependencies": {
-    "my-ts": "1.4.0",
+    "my-ts": "1.5.0",
     "rxjs": "5.4.0",
     "typescript": "2.3.3"
   },
