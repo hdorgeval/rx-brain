@@ -1,6 +1,18 @@
 import {my} from "my-ts";
 import { IObserverWithSubscription } from "./synapse.interface";
 
+export const validObserver =
+        (observerWithSubscription: IObserverWithSubscription<any>): boolean => {
+        if (my(observerWithSubscription).isNullOrUndefinedOrEmpty) {
+            return false;
+        }
+        const observer = observerWithSubscription.observer;
+        if (my(observer).isNullOrUndefined) {
+            return false;
+        }
+        return true;
+    };
+
 export const observerHasActiveSubcription =
         (observer: IObserverWithSubscription<any>, index: number): boolean => {
                 if (my(observer).isNullOrUndefinedOrEmpty) {

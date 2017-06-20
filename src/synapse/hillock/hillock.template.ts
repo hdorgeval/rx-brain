@@ -1,21 +1,13 @@
 import {my} from "my-ts";
 import * as rx from "rxjs";
 import {IObserverWithSubscription} from "../common/synapse.interface";
-import { observerWithActiveSubcription, observerWithNoActiveSubscription } from "../common/synapse.predicates";
-import { observerWithSubscriptionValidator } from "../common/synapse.validators";
+import { observerWithActiveSubcription,
+         observerWithNoActiveSubscription,
+         validObserver } from "../common/synapse.predicates";
 import {IInputChannel} from "./hillock.interface";
 export class Hillock<T> implements IInputChannel<T> {
     private source: rx.Observable<T>;
     private observerWithSubscription: IObserverWithSubscription<T>;
-    private get hasObserver() {
-        const observerWithSubscription = this.observerWithSubscription;
-        const {isValid} = my(observerWithSubscription)
-                            .validateWith(observerWithSubscriptionValidator);
-        return isValid;
-    }
-    private get hasNoObserver() {
-        return this.hasObserver === false;
-    }
     public connectTo(source: rx.Observable<T>): IInputChannel<T> {
         this.source = source;
         this.tryConnectCurrentObserverWithCurrentSource();
@@ -30,35 +22,29 @@ export class Hillock<T> implements IInputChannel<T> {
         if (my(source).isNullOrUndefined) {
             return true;
         }
-
-        if (this.hasNoObserver) {
+        const observer = this.observerWithSubscription;
+        if (my(observer).isNot(validObserver)) {
             return true;
         }
-
-        const observer = this.observerWithSubscription;
         if (my(observer).is(observerWithNoActiveSubscription)) {
             return true;
         }
-
         return false;
     }
     private tryConnectCurrentObserverWithCurrentSource(): void {
-        const observer = this.observerWithSubscription;
-
-        if (my(observer).is(observerWithNoActiveSubscription)) {
-            this.observerWithSubscription.subscription = this.source.subscribe(this.observerWithSubscription.observer);
-            return;
-        }
-        if (my(observer).is(observerWithActiveSubcription)) {
-            this.observerWithSubscription.subscription.unsubscribe();
-            this.observerWithSubscription.subscription = this.source.subscribe(this.observerWithSubscription.observer);
-            return;
-        }
+        this.tryDisconnectCurrentObserver();
+        this.tryReconnectCurrentObserver();
     }
     private tryDisconnectCurrentObserver() {
         const observer = this.observerWithSubscription;
         if (my(observer).is(observerWithActiveSubcription)) {
             this.observerWithSubscription.subscription.unsubscribe();
+        }
+    }
+    private tryReconnectCurrentObserver() {
+        const observer = this.observerWithSubscription;
+        if (my(observer).is(observerWithNoActiveSubscription)) {
+            this.observerWithSubscription.subscription = this.source.subscribe(this.observerWithSubscription.observer);
         }
     }
     private tryConnectCurrentSourceWith(observer: IObserverWithSubscription<T>): void {
