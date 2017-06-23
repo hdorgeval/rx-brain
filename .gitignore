@@ -5,6 +5,9 @@ node_modules/
 src/**/*.js
 src/**/*.map
 
+# pending files 
+pending/
+
 # npm package files
 *.tgz
 build/

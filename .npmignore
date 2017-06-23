@@ -2,5 +2,6 @@
 !src/synapse/common/*.ts
 !src/synapse/hillock/*.ts
 !src/synapse/terminal/*.ts
+!src/synapse/one-way-synapse/*.ts
 !package.json
 !*.md
