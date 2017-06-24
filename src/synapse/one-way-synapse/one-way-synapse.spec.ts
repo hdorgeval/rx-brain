@@ -249,3 +249,147 @@ test(`Given synapse is connected to a data source
     expect(nextMethodOfOtherObserver).toHaveBeenCalledTimes(1);
     expect(nextMethodOfOtherObserver).toBeCalledWith(1);
 });
+
+test(`Given synapse is connected to a data source
+      And synapse has an observer
+      When same observer reconnects to the synapse
+      Then the observer should continue to receive data from the data source
+      And this observer should receive this data only once`
+    , () => {
+    // Given
+    synapse.connectTo(sourceStream)
+           .observeWith(observerWithSubscription);
+    sourceStream.next(0);
+
+    // When
+    synapse.observeWith(observerWithSubscription);
+    sourceStream.next(1);
+
+    // Then
+    expect(synapse.isDisconnected).toBe(false);
+    expect(synapse.hasConnections).toBe(true);
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(1);
+});
+
+test(`Given synapse is connected to a data source
+      And synapse has an observer
+      When this observer disconnects
+      And reconnects to the synapse after a while
+      Then the observer should not receive the data emitted in between
+      But the observer should continue to receive data emitted after its second subscription`
+    , () => {
+    // Given
+    synapse.connectTo(sourceStream)
+           .observeWith(observerWithSubscription);
+    sourceStream.next(0);
+
+    // When
+    observerWithSubscription.subscription.unsubscribe();
+    sourceStream.next(1);
+    synapse.observeWith(observerWithSubscription);
+    sourceStream.next(2);
+
+    // Then
+    expect(synapse.isDisconnected).toBe(false);
+    expect(synapse.hasConnections).toBe(true);
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(2);
+});
+
+test(`Given synapse is connected to a data source
+      And this synapse has one observer
+      When this observer disconnects
+      And the data source is emitting data
+      Then the observer should not receive data anymore
+      And the synapse should stay connected to the data source`
+    , () => {
+    // Given
+    synapse.connectTo(sourceStream)
+           .observeWith(observerWithSubscription);
+    sourceStream.next(0);
+
+    // When
+    observerWithSubscription.subscription.unsubscribe();
+    sourceStream.next(1);
+    sourceStream.next(2);
+
+    // Then
+    expect(synapse.isDisconnected).toBe(false);
+    expect(synapse.hasConnections).toBe(false);
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+});
+
+test(`Given synapse is connected to a data source
+      And a synapse has two observers
+      When the data source is emitting data
+      Then both observers should receive this data`
+    , () => {
+    // Given
+    synapse.connectTo(sourceStream)
+           .observeWith(observerWithSubscription)
+           .observeWith(otherObserverWithSubscription);
+
+    // When
+    sourceStream.next(0);
+
+    // Then
+    expect(synapse.isDisconnected).toBe(false);
+    expect(synapse.hasConnections).toBe(true);
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfOtherObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfOtherObserver).toBeCalledWith(0);
+});
+
+test(`Given synapse is connected to a data source
+      And synapse has one observer
+      When the data source is emitting data
+      And this observer throws an error
+      Then this observer should not receive any more data
+      And this observer should be automatically disconnected`
+    , () => {
+    // Given
+    synapse.connectTo(sourceStream)
+           .observeWith(badObserverWithSubscription);
+
+    // When
+    sourceStream.next(0);
+    sourceStream.next(1);
+
+    // Then
+    expect(synapse.isDisconnected).toBe(false);
+    expect(synapse.hasConnections).toBe(false);
+    expect(nextMethodOfBadObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfBadObserver).toBeCalledWith(0);
+});
+
+test(`Given synapse is connected to a data source
+      And synapse has two observers
+      When the data source is emitting data
+      And the first observer throws an error
+      Then the second observer should receive this data
+      And any other data transmitted afterwards
+      But the first observer should not receive any more data`
+    , () => {
+    // Given
+    synapse.observeWith(badObserverWithSubscription)
+           .observeWith(observerWithSubscription)
+           .connectTo(sourceStream);
+
+    // When
+    sourceStream.next(0);
+    sourceStream.next(1);
+
+    // Then
+    expect(synapse.isDisconnected).toBe(false);
+    expect(synapse.hasConnections).toBe(true);
+    expect(nextMethodOfObserver).toHaveBeenCalledTimes(2);
+    expect(nextMethodOfObserver).toBeCalledWith(0);
+    expect(nextMethodOfObserver).toBeCalledWith(1);
+    expect(nextMethodOfBadObserver).toHaveBeenCalledTimes(1);
+    expect(nextMethodOfBadObserver).toBeCalledWith(0);
+});

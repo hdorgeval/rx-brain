@@ -256,7 +256,7 @@ test(`Given a terminal has two observers
 test(`Given a terminal has two observers
       When a data is transmitted to this terminal
       And both observers disconnect
-      Then both observers should receive this data
+      Then both observers should not receive any more data
       And terminal should have no connection`
     , () => {
     // Given
@@ -267,6 +267,7 @@ test(`Given a terminal has two observers
     terminal.transmit(0);
     observerWithSubscription.subscription.unsubscribe();
     otherObserverWithSubscription.subscription.unsubscribe();
+    terminal.transmit(1);
 
     // Then
     expect(terminal.hasConnections).toBeFalsy();
