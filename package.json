@@ -6,12 +6,12 @@
   "scripts": {
     "precommit": "npm run lint && npm test",
     "commit": "git-cz",
-    "pretest": "tsc --listEmittedFiles",
+    "pretest": "tsc --listEmittedFiles --noStrictGenericChecks",
     "test": "jest --coverage --runInBand --verbose --config=jestconfig.test.json",
     "preupdate:all": "rimraf ./node_modules",
     "update:all": "npm run update:cli && npm run update:packages && npm run update:types",
     "update:packages": "npm install --save typescript@latest rxjs@latest my-ts@latest && npm install --save-dev jest@latest tslint@latest semantic-release@latest commitizen@latest cz-conventional-changelog@latest",
-    "update:types": "npm install --save-dev @types/jest @types/node",
+    "update:types": "npm install --save-dev @types/jest@latest @types/node@latest",
     "update:cli": "npm install -g typescript@latest jest@latest tslint@latest rimraf@latest semantic-release-cli@latest commitizen@latest cz-conventional-changelog@latest codecov@latest",
     "update:check": "npm outdated",
     "update:npm": "npm -v && npm install -g npm@latest && npm -v",
@@ -20,18 +20,18 @@
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "devDependencies": {
-    "@types/jest": "19.2.3",
-    "@types/node": "7.0.18",
+    "@types/jest": "20.0.2",
+    "@types/node": "8.0.7",
     "commitizen": "2.9.6",
     "cz-conventional-changelog": "2.0.0",
     "jest": "20.0.4",
     "semantic-release": "6.3.6",
-    "tslint": "5.3.2"
+    "tslint": "5.4.3"
   },
   "dependencies": {
     "my-ts": "1.6.0",
-    "rxjs": "5.4.0",
-    "typescript": "2.3.3"
+    "rxjs": "5.4.1",
+    "typescript": "2.4.1"
   },
   "engines": {
     "node": ">=7.0.0",
