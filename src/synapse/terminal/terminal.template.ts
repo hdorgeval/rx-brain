@@ -1,7 +1,7 @@
 import {my} from "my-ts";
 import { IValidationResult } from "my-ts/build/common/my-common.interface";
 import * as rx from "rxjs";
-import {IObserverWithSubscription} from "../common/synapse.interface";
+import { IObserverWithSubscription } from "../../common/common.interfaces";
 import { observerHasActiveSubcription } from "../common/synapse.predicates";
 import { observerWithSubscriptionValidator } from "../common/synapse.validators";
 import {IOutputChannel} from "./terminal.interface";

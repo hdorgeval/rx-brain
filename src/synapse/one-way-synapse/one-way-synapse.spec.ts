@@ -1,6 +1,6 @@
 import { my } from "my-ts";
 import * as rx from "rxjs";
-import { IObserverWithSubscription } from "../common/synapse.interface";
+import { IObserverWithSubscription } from "../../common/common.interfaces";
 import { Hillock } from "../hillock/hillock.template";
 import { Terminal } from "../terminal/terminal.template";
 import { IOneWaySynapse } from "./one-way-synapse.interface";

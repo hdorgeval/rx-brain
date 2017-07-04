@@ -1,4 +1,5 @@
 *
+!src/common/*.ts
 !src/synapse/common/*.ts
 !src/synapse/hillock/*.ts
 !src/synapse/terminal/*.ts

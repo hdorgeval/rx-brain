@@ -1,5 +1,5 @@
 import * as rx from "rxjs";
-import {IObserverWithSubscription} from "../common/synapse.interface";
+import { IObserverWithSubscription } from "../../common/common.interfaces";
 export interface IInputChannel<T>{
     readonly isDisconnected: boolean;
     connectTo(source: rx.Observable<T>): IInputChannel<T>;

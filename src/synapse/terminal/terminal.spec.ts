@@ -1,6 +1,6 @@
 import { my } from "my-ts";
 import * as rx from "rxjs";
-import { IObserverWithSubscription } from "../common/synapse.interface";
+import { IObserverWithSubscription } from "../../common/common.interfaces";
 import { IOutputChannel} from "./terminal.interface";
 import { Terminal } from "./terminal.template";
 

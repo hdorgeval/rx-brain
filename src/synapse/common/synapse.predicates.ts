@@ -1,5 +1,5 @@
 import {my} from "my-ts";
-import { IObserverWithSubscription } from "./synapse.interface";
+import { IObserverWithSubscription } from "../../common/common.interfaces";
 
 export const validObserver =
         (observerWithSubscription: IObserverWithSubscription<any>): boolean => {

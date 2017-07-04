@@ -1,7 +1,7 @@
 
 import {my} from "my-ts";
 import { IValidationResult } from "my-ts/build/common/my-common.interface";
-import { IObserverWithSubscription } from "./synapse.interface";
+import { IObserverWithSubscription } from "../../common/common.interfaces";
 
 export const observerWithSubscriptionValidator =
         (observerWithSubscription: IObserverWithSubscription<any>): IValidationResult => {
