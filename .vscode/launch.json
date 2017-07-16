@@ -5,26 +5,39 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Jest",
+            "type": "node",
+            "protocol": "inspector",
+            "request": "attach",
+            "name": "Attach to Remote Jest (Node 8.x)",
+            "port": 9229,
+            "address": "localhost",
+            "localRoot": "${workspaceRoot}",
+            "sourceMaps": true
+        },
+        {
+            "name": "Jest with Node 7.10.1",
             "type": "node",
             "request": "launch",
             "protocol": "auto",
+            "console": "integratedTerminal",
             "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
             "stopOnEntry": false,
-            "args": ["--runInBand", "--config=jestconfig.debug.json"],
+            "args": [
+                "--runInBand", 
+                "--no-cache", 
+                "--no-watchman", 
+                "--debug", 
+                "--config=jestconfig.debug.json"],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "tsc",
             "runtimeExecutable": null,
             "runtimeArgs": [
-                "--nolazy"
-            ],
+                "--nolazy"],
             "env": {
-                "NODE_ENV": "development"
+                "NODE_ENV": "test"
             },
-            "sourceMaps": true
-           
-            
-
+            "sourceMaps": true,
+            "smartStep": true
         }
     ]
 }
